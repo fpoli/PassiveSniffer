@@ -8,5 +8,6 @@ function tap.packet(pinfo,tvb,tapinfo)
 	packetinfo:init_packet(pinfo,tvb,tapinfo)
 
 	local data = get_data().range:string()
+
 	packetinfo:single_attribute("ws-discovery.data", data)
 end
