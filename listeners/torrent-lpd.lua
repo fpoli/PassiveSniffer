@@ -7,7 +7,7 @@ local get_lpd_data = Field.new("data.data")
 function tap.packet(pinfo,tvb,tapinfo)
 	packetinfo:init_packet(pinfo,tvb,tapinfo)
 
-	local lpd_data = hex2ascii(tostring(get_lpd_data()))
+	local lpd_data = get_lpd_data().range:string()
 	local listenting_port = string.match(lpd_data, "Port: (%d+)")
 	local infohash = string.match(lpd_data, "Infohash: ([0-9abcdefABCDEF]+)")
 
