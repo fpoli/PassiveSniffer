@@ -2,10 +2,11 @@
 local tap = Listener.new(nil, "udp.dstport == 1900 && http")
 
 -- Fields
--- local get_ssdp = Field.new("ssdp")
+local get_http = Field.new("http")
 
 function tap.packet(pinfo,tvb,tapinfo)
 	packetinfo:init_packet(pinfo,tvb,tapinfo)
 
-	packetinfo:single_attribute("ssdp.detected", "True")
+	local data = get_http().range:string()
+	packetinfo:single_attribute("ssdp.data", data)
 end
