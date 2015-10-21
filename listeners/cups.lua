@@ -1,3 +1,4 @@
+-- Common Unix Printing System
 local tap = Listener.new(nil, "cups")
 
 -- Fields

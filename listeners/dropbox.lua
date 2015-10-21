@@ -1,4 +1,4 @@
--- Dropbox Protocol
+-- Dropbox Discovery Protocol
 local tap = Listener.new(nil, "db-lsp-disc")
 
 local json = require 'json'
