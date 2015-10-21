@@ -15,12 +15,12 @@ dofile("listeners/eth.lua")
 -- dofile("listeners/ip.lua") -- Useless
 dofile("listeners/dropbox.lua")
 -- dofile("listeners/nbns.lua") -- TODO all field missing
-dofile("listeners/dhcp.lua") -- TODO da aggiungere campi, it does not recognize unknown parameters
-dofile("listeners/dhcpv6.lua") -- TODO
+dofile("listeners/dhcp.lua") -- TODO it does not recognize unknown parameters
+dofile("listeners/dhcpv6.lua")
 dofile("listeners/mndp.lua") -- TODO missing fields, it does not recognize unknown parameters
 dofile("listeners/stp.lua")
 dofile("listeners/eap.lua")
-dofile("listeners/cups.lua") -- TODO missing fields: uri, location, information, make and model
+dofile("listeners/cups.lua")
 dofile("listeners/browser.lua") -- TODO some field missing
 dofile("listeners/cdp.lua")
 dofile("listeners/torrent-lpd.lua")
