@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="it">
+	<head>
+		<meta charset="utf-8">
+		<title>PassiveSniffer</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="description" content="Passively analyzes LAN network traffic, logging DHCP and ARP packets">
+		<meta name="author" content="Federico Poli">
+		
+		<link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+		<link href="/static/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet">
+		<link href="/static/css/custom.css" rel="stylesheet">
+
+		<!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+		<!--[if lt IE 9]>
+			<script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+		<nav class="navbar navbar-inverse navbar-static-top">
+			<div class="navbar-inner">
+				<div class="container">
+					<ul class="nav">
+						<li><a href="/">Risultati</a></li>
+						<li><a href="/ipmap">Mappa IP</a></li>
+					</ul>
+{% block nav %}{% end %}
+					<div class="nav-collapse">
+					</div>
+				</div>
+			</div>
+		</nav>
+
+		<section>
+			<div class="container">
+				<div class="row">
+					<div class="span12">
+{% block container %}{% end %}
+					</div>
+				</div> <!-- /row -->
+			</div>
+		</section> <!-- /container -->
+
+		<footer class="footer">
+			<div class="container">
+{% block footer %}{% end %}
+			</div>
+		</footer>
+		
+		<!-- Le javascript
+		================================================== -->
+		<!-- Placed at the end of the document so the pages load faster -->
+		<script src="/static/js/jquery.min.js"></script>
+		<script src="/static/bootstrap/js/bootstrap.min.js"></script>
+{% block javascript %}{% end %}
+	</body>
+</html>

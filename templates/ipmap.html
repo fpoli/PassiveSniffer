@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block nav %} <!-- NAV -->
+<a class="brand" title="Aggiorna" href="/ipmap/{{minutes}}">Ultimi {{minutes}} minuti</a>
+<span class="navbar-text pull-right">{{ datetime }}</span>
+{% end %}
+
+{% block container %} <!-- CONTAINER -->
+<div id="map"></div>
+{% end %}
+
+{% block javascript %} <!-- JAVASCRIPT -->
+<script src="/static/js/d3.v3.js"></script>
+<script src="/static/js/d3.geo.tile.js"></script>
+<script>
+
+function compareNumbers(a, b) {
+	return a - b;
+}
+
+function num2dot(num) {
+	var d = num%256;
+	for (var i = 3; i > 0; i--) {
+		num = Math.floor(num/256);
+		d = num%256 + "." + d;
+	}
+	return d;
+}
+
+var hilbert = (function() {
+	// Adapted from Nick Johnson
+	// http://blog.notdot.net/2009/11/Damn-Cool-Algorithms-Spatial-indexing-with-Quadtrees-and-Hilbert-Curves
+	var pairs = [
+		[[0, 3], [1, 0], [3, 1], [2, 0]],
+		[[2, 1], [1, 1], [3, 0], [0, 2]],
+		[[2, 2], [3, 3], [1, 2], [0, 1]],
+		[[0, 0], [3, 2], [1, 3], [2, 3]]
+	];
+	return function(x, y, order) {
+		var quad = 0, pair, i = 0;
+		while (--order >= 0) {
+			pair = pairs[quad][(x & (1 << order) ? 2 : 0) | (y & (1 << order) ? 1 : 0)];
+			i *= 4;       // i = (i << 2) | pair[0];
+			i += pair[0]; //
+			quad = pair[1];
+		}
+		return i;
+	};
+})();
+
+function hsl(h, s, l) {
+	var m1, m2;
+
+	/* Some simple corrections for h, s and l. */
+	h = h % 360; if (h < 0) h += 360;
+	s = s < 0 ? 0 : s > 1 ? 1 : s;
+	l = l < 0 ? 0 : l > 1 ? 1 : l;
+
+	/* From FvD 13.37, CSS Color Module Level 3 */
+	m2 = l <= 0.5 ? l * (1 + s) : l + s - l * s;
+	m1 = 2 * l - m2;
+
+	function v(h) {
+		if (h > 360) h -= 360;
+		else if (h < 0) h += 360;
+		if (h < 60) return m1 + (m2 - m1) * h / 60;
+		if (h < 180) return m2;
+		if (h < 240) return m1 + (m2 - m1) * (240 - h) / 60;
+		return m1;
+	}
+
+	function vv(h) {
+		return Math.round(v(h) * 255);
+	}
+
+	return "rgb(" + vv(h + 120) + "," + vv(h) + "," + vv(h - 120) + ")";
+}
+
+var ipdata = [];
+var ipdatalength = 0;
+var ipmax = Math.pow(256, 4);
+
+function ipInRange(from, to) {
+	var a, b, m, start, end;
+	
+	// Find minimum x in [0..length] such that for each k in [0..x-1] data[k] < from
+	a = 0; b = ipdata.length;
+	while (b-a > 0) {
+		m = Math.floor((a+b)/2);
+		if (ipdata[m] < from) a = m+1;
+		else b = m;
+	}
+	start = a;
+	
+	// Find minimum x in [0..length] such that for each k in [0..x-1] data[k] < to
+	a = 0; b = ipdata.length;
+	while (b-a > 0) {
+		m = Math.floor((a+b)/2);
+		if (ipdata[m] <= to) a = m+1;
+		else b = m;
+	}
+	end = b;
+	
+	return end-start < 0 ? 0 : end-start;
+} 
+
+
+var width = $("#map").width();
+var height = 500;
+var tileSize = 64;
+var tileLevels = 16;
+var initialScale = 1/Math.pow(2, 14);
+var hugeTileSize = tileSize * Math.pow(2, tileLevels);
+
+var tile = d3.geo.tile()
+	.size([width, height])
+	.tileSize(tileSize)
+	.tileLevels(tileLevels);
+
+var zoom = d3.behavior.zoom()
+	.scale(initialScale)
+	.translate([
+		width / 2 - hugeTileSize * initialScale / 2,
+		height / 2 - hugeTileSize * initialScale / 2
+	])
+	.on("zoom", zoomed);
+
+var svg = d3.select("#map").append("svg")
+	.attr("width", width)
+	.attr("height", height)
+	.call(zoom);
+
+var layer = svg.append("g")
+	.attr("id", "tiles");
+
+var xkcdlayer = svg.append("image")
+	.attr("id", "xkcd")
+	.attr("xlink:href", "http://imgs.xkcd.com/comics/map_of_the_internet.jpg")
+	.attr("display", "none")
+	.style("opacity", 0.7);
+
+var info = svg.append("text")
+	.attr("id", "info")
+	.attr("x", 10)
+	.attr("y", height - 10);
+
+zoomed();
+
+function zoomed() {
+	var tiles = tile
+		.scale(zoom.scale())
+		.translate(zoom.translate())
+		();
+
+	tiles.forEach(function(d){
+		var sideLength = Math.pow(2, d.level);
+		var len = sideLength * sideLength;
+		var pos = hilbert(d.x, d.y, d.level);
+		var ipstart = pos * Math.pow(4, d.zoom); // = i/len*ipmax;
+		var ipend = (pos+1) * Math.pow(4, d.zoom) - 1; // = (i+1)/len*ipmax-1;
+		var num = ipInRange(ipstart, ipend);
+		d.ipstart = ipstart;
+		d.ipend = ipend;
+		d.numip = num;
+		d.pos = pos;
+		d.len = len;
+	});
+
+	var data = layer.selectAll(".tile")
+		.data(tiles, function(d){ return  d.len + d.pos; });
+
+	data.exit().remove();
+
+	data.enter()
+	.append("rect")
+		.attr("class", "tile")
+		.attr("stroke", "rgba(0,0,0,0.7)");
+
+	data.attr("fill", function(d){ return colorByNum(d.pos/d.len, d.numip); })
+		.on("mouseover", function(d) {
+			var msg;
+			if (d.ipend == d.ipstart) {
+				msg = num2dot(d.ipstart);
+			} else {
+				msg = num2dot(d.ipstart)+" ~ "+num2dot(d.ipend)+": "+d.numip;
+			}
+			info.text(msg);
+		})
+		.on("mouseout", function() {
+			info.text("");
+		})
+		.attr("width", function(d){ return d.size * zoom.scale(); })
+		.attr("height", function(d){ return d.size * zoom.scale(); })
+		.attr("x", function(d){ return d.x * d.size * zoom.scale(); })
+		.attr("y", function(d){ return d.y * d.size * zoom.scale(); })
+		.attr("transform",
+			"translate(" + zoom.translate()[0] + "," + zoom.translate()[1] + ")"
+		);
+
+	var factor = hugeTileSize * zoom.scale() / 500;
+	xkcdlayer
+		.attr("x", -77 / initialScale * zoom.scale())
+		.attr("y", -42 / initialScale * zoom.scale())
+		.attr("width", hugeTileSize * 64/40 * zoom.scale())
+		.attr("height", hugeTileSize * 64/40 * zoom.scale())
+		.attr("transform",
+			//"translate(" + -48 + "," + -25 + ")" +
+			//"scale(" + factor + ")" +
+			"translate(" + zoom.translate()[0] + "," + zoom.translate()[1] + ")"
+		);
+}
+
+function colorByNum(i, num) {
+	if (num === 0) return hsl(i*360, 0.5, 0.9);
+	
+	var col = Math.log(num+1) / (Math.log(ipdatalength+1));
+	//var col = Math.log(num) / (4 * Math.LN10);
+	col = col < 0 ? 0 : col > 1 ? 1 : col;
+	return hsl(240+col*120, col, 0.5);
+}
+
+function onkey(e) {
+	switch (e.keyCode) {
+		// tasto x
+		case 88:
+			var display = e.type == "keydown";
+			xkcdlayer.attr("display", display ? "true" : "none");
+			break;
+	}
+}
+window.addEventListener("keydown", onkey, false);
+window.addEventListener("keyup", onkey, false);
+
+var update_chart = function(data_active){
+	var request_update = Date.now();
+	d3.json("/data/ipmap/{{minutes}}", function(error, data) {
+		var delay = Date.now()-request_update;
+		console.log("Dati ricevuti in "+delay+"ms. Aggiorno ("+data.length+" elementi)...");
+		ipdata = data;
+		ipdatalength = ipdata.length;
+		ipdata.sort(compareNumbers);
+		// update map
+		zoomed();
+	});
+};
+
+update_chart();
+
+</script>
+{% end %}

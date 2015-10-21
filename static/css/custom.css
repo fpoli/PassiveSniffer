@@ -1,0 +1,32 @@
+body {
+	padding-bottom: 40px;
+}
+
+.navbar .search-query {
+	margin-top: -4px;
+}
+
+.navbar-bigtext {
+	font-weight: 200;
+	font-size: 20px;
+	color: #999;
+	padding: 10px 20px;
+	margin-left: -4px;
+}
+
+.navbar-static-top .navbar-inner {
+	border-radius: 0 0 0 0;
+	margin-bottom: 20px;
+}
+
+/* Sortable tables */
+table.sortable thead {
+	cursor: default;
+}
+
+/* IPmap */
+
+#map>svg {
+	border: 1px solid #777;
+	shape-rendering: crispEdges;
+}

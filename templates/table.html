@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block nav %} <!-- NAV -->
+<a class="brand" title="Aggiorna" href="/{{minutes}}">Ultimi {{minutes}} minuti:</a>
+
+<span class="navbar-text">
+	<input type="text" id="search" class="search-query" placeholder="Cerca">
+</span>
+<span class="navbar-text navbar-bigtext"><span id="active_hosts">{{ active_hosts }}</span> risultati</span>
+
+<span class="navbar-text pull-right">{{ datetime }}</span>
+{% end %}
+
+{% block container %} <!-- CONTAINER -->
+<div>
+	<div id="y_axis"></div>
+	<div id="chart"></div>
+</div>
+
+<!--tag <dl><dt></dt><dd></dd></dl>-->
+<table id="maintable" class="table table-bordered">
+	<thead>
+		<tr>
+			<th>MAC address</th>
+			<th>IP address</th>
+			<th>Attribute</th>
+			<th>Last activity</th>
+		</tr>
+	</thead>
+	<tbody>
+	{% for row in data %}
+		{% for i, ip_attr in enumerate(row[1]) %}
+			<tr>
+				{% if i == 0 %}
+					<td rowspan="{{ len(row[1]) }}">{{ row[0] if row[0] is not None else "" }}</td>
+				{% end %}
+				<td>{{ ip_attr[0] if ip_attr[0] is not None else "" }}</td>
+				<td>
+					{% for attr in ip_attr[1] %}
+						<p><b>{{ attr[0] }}:</b> {{ attr[1] }}</p>
+					{% end %}
+				</td>
+				<td>{{ ip_attr[2] if ip_attr[2] is not None else "" }}</td>
+			</tr>
+		{% end %}
+	{% end %}
+	</tbody>
+</table>
+{% end %}
+
+{% block javascript %} <!-- JAVASCRIPT -->
+<script src="/static/js/searchtable.js"></script>
+<script>
+/* Filtro tabella */
+var $searchtext = $('#search');
+var $rows = $('#maintable tbody tr');
+var $active_hosts = $('#active_hosts');
+var filtra = function() {
+	var val = $.trim($searchtext.val()).replace(/ +/g, ' ').toLowerCase();
+	
+	$rows.show().filter(function() {
+		var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
+		return !~text.indexOf(val);
+	}).hide();
+	calculate_rowspans();
+	
+	$active_hosts.text($rows.filter(":visible").length);
+};
+
+var delay = (function(){
+	var timer = 0;
+	return function(callback, ms){
+		clearTimeout (timer);
+		timer = setTimeout(callback, ms);
+	};
+})();
+
+$('#search').keyup(function() {
+	delay(filtra, 500);
+});
+
+$(document).ready(function () {  
+	get_cell_data();
+});
+</script>
+{% end %}
