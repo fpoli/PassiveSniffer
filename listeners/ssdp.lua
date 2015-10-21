@@ -7,6 +7,6 @@ local get_http = Field.new("http")
 function tap.packet(pinfo,tvb,tapinfo)
 	packetinfo:init_packet(pinfo,tvb,tapinfo)
 
-	local data = get_http().range:string()
+	local data = get_readable(get_http().range:string())
 	packetinfo:single_attribute("ssdp.data", data)
 end
