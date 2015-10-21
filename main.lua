@@ -14,14 +14,14 @@ dofile("listeners/eth.lua")
 -- dofile("listeners/arp.lua")
 -- dofile("listeners/ip.lua") -- Useless
 dofile("listeners/dropbox.lua")
--- dofile("listeners/nbns.lua") -- TODO, FIXME mancano tutti i campi
-dofile("listeners/dhcp.lua") -- TODO da aggiungere campi, non riconosce se ci sono parametri sconosciuti
+-- dofile("listeners/nbns.lua") -- TODO all field missing
+dofile("listeners/dhcp.lua") -- TODO da aggiungere campi, it does not recognize unknown parameters
 dofile("listeners/dhcpv6.lua") -- TODO
-dofile("listeners/mndp.lua") -- TODO manca un campo, non riconosce se ci sono parametri sconosciuti
+dofile("listeners/mndp.lua") -- TODO missing fields, it does not recognize unknown parameters
 dofile("listeners/stp.lua")
 dofile("listeners/eap.lua")
-dofile("listeners/cups.lua") -- TODO mancano i campi uri, location, information, make and model
-dofile("listeners/browser.lua") -- TODO mancano vari campi
+dofile("listeners/cups.lua") -- TODO missing fields: uri, location, information, make and model
+dofile("listeners/browser.lua") -- TODO some field missing
 dofile("listeners/cdp.lua")
 dofile("listeners/torrent-lpd.lua")
 dofile("listeners/spotify.lua")
