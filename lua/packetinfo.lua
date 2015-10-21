@@ -87,13 +87,15 @@ function packetinfo:log(attr, value)
 			self.ip:gsub("%;", ":"),
 			self.protocol
 		)
+	local extra = ""
 	if self.discard then
-		msg = msg .. ("  (discard)")
+		extra = extra .. ("  (discard)")
 	end
 	if attr and value then
-		msg = msg .. ("  %s: %s"):format(attr, value)
+		extra = extra .. ("  %s: %s"):format(attr, value)
 	end
-	log.info(msg)
+	extra = truncate_with_ellipsis(extra, 80)
+	log.info(msg .. extra)
 end
 
 return packetinfo

@@ -44,8 +44,8 @@ function get_readable(str)
 	return s
 end
 
-local function isempty(s)
-  return s == nil or s == ''
+function isempty(s)
+	return s == nil or s == ''
 end
 
 function is_private_ip(ip)
@@ -74,5 +74,15 @@ function is_private_ip(ip)
 			-- TODO?
 			return false
 		end
+	end
+end
+
+
+function truncate_with_ellipsis(str, num)
+	local ellipsis = "..."
+	if str:len() <= num then
+		return str
+	else
+		return str:sub(1, num-3) .. "..."
 	end
 end
