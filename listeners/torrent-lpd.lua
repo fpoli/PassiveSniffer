@@ -1,5 +1,5 @@
 -- Torrent Local Peer Discovery (peer-to-peer)
-local tap = Listener.new(nil, "udp.dstport == 6771 && ip.dst == 239.192.152.143")
+local tap = Listener.new(nil, "udp.dstport == 6771")
 
 -- Fields
 local get_lpd_data = Field.new("data.data")
