@@ -72,13 +72,14 @@ def get_attribute(mac, ip, attr, pipe=redisdb):
 	ip = ip.replace(":",";")
 	return (
 		pipe.get("mac:{}:ip:{}:single:{}:value".format(mac, ip, attr)),
-		pipe.get("mac:{}:ip:{}:single:{}:timestamp".format(mac, ip, attr))
+		float(pipe.get("mac:{}:ip:{}:single:{}:timestamp".format(mac, ip, attr)))
 	)
 
 def get_multiattribute(mac, ip, attr, pipe=redisdb):
 	mac = mac.replace(":",";")
 	ip = ip.replace(":",";")
-	return pipe.hgetall("mac:{}:ip:{}:multi:{}".format(mac, ip, attr))
+	items = pipe.hgetall("mac:{}:ip:{}:multi:{}".format(mac, ip, attr)).items()
+	return { key: float(val) for key, val in items }
 
 # Derived
 def get_mac_last_ip(mac, pipe=redisdb):
@@ -127,7 +128,7 @@ def get_mac_ip_attribute_values(mac, ip, from_time):
 			attributes += [
 				(attr_description, value, value_dict[value])
 				for value in value_dict
-				if value_dict[value] >= from_time # if timestamp >= from_time
+				if value_dict[value] >= from_time
 			]
 		else:
 			(value, timestamp) = get_attribute(mac, ip, attr)
